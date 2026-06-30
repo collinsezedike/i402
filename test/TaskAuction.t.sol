@@ -95,7 +95,7 @@ contract TaskAuctionTest is Test {
 
         (
             address req,,,,,,,,,,,
-            TaskAuction.TaskStatus status,,
+            TaskAuction.TaskStatus status,,,
         ) = auction.tasks(id);
 
         assertEq(req, requester);
@@ -208,7 +208,7 @@ contract TaskAuctionTest is Test {
         vm.prank(agentA);
         auction.revealBid(id, price, time, nonce);
 
-        assertEq(auction.getRevealCount(id), 1);
+        assertEq(auction.getReveals(id).length, 1);
     }
 
     function test_Reveal_RevertsInvalidHash() public {
@@ -279,7 +279,7 @@ contract TaskAuctionTest is Test {
         skip(REVEAL_WIN + 1);
         auction.selectWinner(id);
 
-        (,,,,,,,,,,, TaskAuction.TaskStatus status, address winner,) = auction.tasks(id);
+        (,,,,,,,,,,, TaskAuction.TaskStatus status, address winner,,) = auction.tasks(id);
         assertEq(winner, agentB);
         assertEq(uint8(status), uint8(TaskAuction.TaskStatus.FULFILLING));
     }
@@ -307,7 +307,7 @@ contract TaskAuctionTest is Test {
         skip(REVEAL_WIN + 1);
         auction.selectWinner(id);
 
-        (,,,,,,,,,,, , address winner,) = auction.tasks(id);
+        (,,,,,,,,,,, , address winner,,) = auction.tasks(id);
         assertEq(winner, agentB);
     }
 
@@ -337,7 +337,7 @@ contract TaskAuctionTest is Test {
         skip(REVEAL_WIN + 1);
         auction.selectWinner(id);
 
-        (,,,,,,,,,,, , address winner,) = auction.tasks(id);
+        (,,,,,,,,,,, , address winner,,) = auction.tasks(id);
         assertEq(winner, agentA); // earlier commit wins the tie
     }
 
@@ -354,7 +354,7 @@ contract TaskAuctionTest is Test {
         auction.selectWinner(id);
         uint256 after_ = requester.balance;
 
-        (,,,,,,,,,,, TaskAuction.TaskStatus status,,) = auction.tasks(id);
+        (,,,,,,,,,,, TaskAuction.TaskStatus status,,,) = auction.tasks(id);
         assertEq(uint8(status), uint8(TaskAuction.TaskStatus.CANCELLED));
         assertEq(after_ - before, BUDGET); // requester refunded
     }
@@ -408,14 +408,11 @@ contract TaskAuctionTest is Test {
         vm.prank(requester);
         auction.confirmAndSettle(id);
 
-        // agentA gets price paid + bond back (via direct transfer since x402 is mocked to no-op)
-        // Since x402 mock doesn't actually send ETH, we just check escrow drained and bond returned.
         assertEq(auction.escrow(id), 0);
-
-        // Requester should get back overage: BUDGET - price
+        // Winner receives payment directly + bond back
+        assertEq(agentA.balance, agentBefore + price + BOND);
+        // Requester gets back budget overage
         assertApproxEqAbs(requester.balance, requesterBefore + (BUDGET - price), 1);
-        // agentA bond returned
-        assertEq(agentA.balance, agentBefore + BOND);
     }
 
     function test_ConfirmAndSettle_RevertsNonRequester() public {
@@ -495,11 +492,70 @@ contract TaskAuctionTest is Test {
         uint256 requesterBefore = requester.balance;
         auction.slashWinner(id);
 
-        (,,,,,,,,,,, TaskAuction.TaskStatus status,,) = auction.tasks(id);
+        (,,,,,,,,,,, TaskAuction.TaskStatus status,,,) = auction.tasks(id);
         assertEq(uint8(status), uint8(TaskAuction.TaskStatus.CANCELLED));
 
         // Requester got escrow back + winner's forfeited bond
         assertGt(requester.balance, requesterBefore);
         assertEq(auction.escrow(id), 0);
+    }
+
+    function test_SlashWinner_RevertsIfFulfillmentSubmitted() public {
+        (uint256 id,) = _runToFulfilling(TaskAuction.SelectionRule.LOWEST_PRICE);
+
+        vm.prank(agentA);
+        auction.submitFulfillment(id, keccak256("proof"));
+
+        skip(FULFILL_WIN + 1);
+
+        vm.expectRevert(TaskAuction.FulfillmentAlreadySubmitted.selector);
+        auction.slashWinner(id);
+    }
+
+    function test_ConfirmAndSettle_RevertsWithoutFulfillment() public {
+        (uint256 id,) = _runToFulfilling(TaskAuction.SelectionRule.LOWEST_PRICE);
+
+        vm.prank(requester);
+        vm.expectRevert(TaskAuction.FulfillmentNotSubmitted.selector);
+        auction.confirmAndSettle(id);
+    }
+
+    function test_PostTask_RevertsZeroDuration() public {
+        vm.prank(requester);
+        vm.expectRevert(TaskAuction.InvalidDuration.selector);
+        auction.postTask{value: BUDGET}(
+            keccak256("x"),
+            address(0),
+            BUDGET,
+            BOND,
+            0,
+            REVEAL_WIN,
+            FULFILL_WIN,
+            TaskAuction.SelectionRule.LOWEST_PRICE,
+            0, 0
+        );
+    }
+
+    function test_RevealBid_RevertsAboveMaxBudget() public {
+        uint256 id    = _postTask(TaskAuction.SelectionRule.LOWEST_PRICE);
+        uint256 price = BUDGET + 1;
+        bytes32 nonce = bytes32(uint256(1));
+
+        vm.prank(agentA);
+        auction.commitBid{value: BOND}(id, _commitment(price, 3600, nonce));
+
+        skip(BID_WIN + 1);
+
+        vm.prank(agentA);
+        vm.expectRevert(TaskAuction.PriceTooHigh.selector);
+        auction.revealBid(id, price, 3600, nonce);
+    }
+
+    function test_ClaimBond_RevertsForWinner() public {
+        (uint256 id,) = _runToFulfilling(TaskAuction.SelectionRule.LOWEST_PRICE);
+
+        vm.prank(agentA);
+        vm.expectRevert(TaskAuction.WinnerCannotClaimBond.selector);
+        auction.claimBond(id);
     }
 }
