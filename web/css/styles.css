@@ -1,0 +1,568 @@
+/* ============================================================
+   Tokens
+   ============================================================ */
+
+:root {
+  --bg:          #080808;
+  --surface:     #111111;
+  --surface-2:   #161616;
+  --border:      #1e1e1e;
+  --border-2:    #2a2a2a;
+  --accent:      #f7931a;
+  --accent-dim:  rgba(247, 147, 26, 0.12);
+  --accent-glow: rgba(247, 147, 26, 0.06);
+  --text:        #e2e2e2;
+  --muted:       #5a5a5a;
+  --muted-2:     #888888;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+  --max-w:     68rem;
+  --pad-x:     clamp(1.25rem, 5vw, 3rem);
+  --section-y: clamp(5rem, 10vw, 9rem);
+
+  --radius:    4px;
+  --ease:      cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+
+html { color-scheme: dark; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  overflow-x: hidden;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--max-w);
+  margin-inline: auto;
+  padding-inline: var(--pad-x);
+}
+
+.accent { color: var(--accent); }
+
+/* ============================================================
+   Scroll-reveal
+   ============================================================ */
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(1.25rem);
+    transition: opacity 600ms var(--ease), transform 600ms var(--ease);
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   Hero load animations
+   ============================================================ */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(1.5rem); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-hero {
+    opacity: 0;
+    animation: fadeUp 800ms var(--ease) forwards;
+  }
+
+  .reveal-hero:nth-child(1) { animation-delay: 80ms;  }
+  .reveal-hero:nth-child(2) { animation-delay: 220ms; }
+  .reveal-hero:nth-child(3) { animation-delay: 380ms; }
+  .reveal-hero:nth-child(4) { animation-delay: 540ms; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-hero { opacity: 1; }
+}
+
+/* ============================================================
+   Nav
+   ============================================================ */
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem var(--pad-x);
+  transition: background 300ms ease, border-color 300ms ease;
+  border-bottom: 1px solid transparent;
+}
+
+.nav--scrolled {
+  background: rgba(8, 8, 8, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-color: var(--border);
+}
+
+.nav__logo {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.nav__github {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--muted-2);
+  transition: color 200ms;
+}
+
+.nav__github:hover { color: var(--text); }
+
+/* ============================================================
+   Hero
+   ============================================================ */
+
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.hero__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(247, 147, 26, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(247, 147, 26, 0.045) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, black 20%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, black 20%, transparent 100%);
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(247, 147, 26, 0.07) 0%, transparent 65%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  pointer-events: none;
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 1;
+  padding-top: 7rem;
+  padding-bottom: 5rem;
+}
+
+.hero__overline {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.75rem;
+}
+
+.hero__headline {
+  font-size: clamp(3.25rem, 7.5vw, 7rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.0;
+  color: #fff;
+  margin-bottom: 1.75rem;
+}
+
+.hero__sub {
+  max-width: 46ch;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  color: var(--muted-2);
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+}
+
+.hero__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: opacity 200ms, background 200ms, color 200ms, border-color 200ms;
+  cursor: pointer;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #000;
+  border: 1px solid var(--accent);
+}
+
+.btn--primary:hover { opacity: 0.88; }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid rgba(247, 147, 26, 0.35);
+}
+
+.btn--ghost:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ============================================================
+   Sections - shared
+   ============================================================ */
+
+.section {
+  padding-block: var(--section-y);
+  border-top: 1px solid var(--border);
+}
+
+.section__label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 1.75rem;
+}
+
+/* ============================================================
+   Problem
+   ============================================================ */
+
+.problem__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+}
+
+@media (min-width: 720px) {
+  .problem__grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.problem__heading {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: #fff;
+  margin-bottom: 1.5rem;
+}
+
+.problem__prose p {
+  color: var(--muted-2);
+  line-height: 1.8;
+  margin-bottom: 1rem;
+  font-size: 0.975rem;
+}
+
+.problem__prose p:last-child { margin-bottom: 0; }
+
+.problem__callout {
+  padding: 2rem;
+  border-left: 2px solid var(--accent);
+  background: var(--surface);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  align-self: center;
+}
+
+.problem__callout-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-bottom: 1.1rem;
+}
+
+.problem__callout blockquote {
+  font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+  color: var(--text);
+  line-height: 1.55;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.quote-highlight {
+  position: relative;
+  display: inline;
+  white-space: nowrap;
+}
+
+.quote-highlight::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  right: -7px;
+  top: 52%;
+  bottom: -4px;
+  background: rgba(247, 147, 26, 0.28);
+  border-radius: 1px;
+  z-index: -1;
+}
+
+.quote-highlight--left::before {
+  left: 0;
+  right: 0;
+  top: 8%;
+  bottom: 42%;
+}
+
+/* ============================================================
+   Mechanism / Steps
+   ============================================================ */
+
+.mechanism__heading {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: #fff;
+  margin-bottom: 3.5rem;
+  max-width: 28ch;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  max-width: 52rem;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 0 2rem;
+}
+
+.step__marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.step__number {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: background 450ms var(--ease), color 450ms var(--ease), border-color 450ms var(--ease);
+}
+
+.step.is-visible .step__number {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+.step__line {
+  width: 1px;
+  flex: 1;
+  min-height: 2rem;
+  background: var(--border);
+  margin-block: 6px;
+}
+
+.step:last-child .step__line { display: none; }
+
+.step__body {
+  padding-bottom: 3rem;
+}
+
+.step:last-child .step__body { padding-bottom: 0; }
+
+.step__title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.6rem;
+  margin-top: 0.65rem;
+  letter-spacing: -0.01em;
+}
+
+.step__desc {
+  color: var(--muted-2);
+  font-size: 0.95rem;
+  line-height: 1.75;
+  margin-bottom: 0.9rem;
+}
+
+.step__tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(247, 147, 26, 0.15);
+}
+
+/* ============================================================
+   Stack / Cards
+   ============================================================ */
+
+.stack__heading {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: #fff;
+  margin-bottom: 3rem;
+  max-width: 28ch;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  padding: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 250ms ease, background 250ms ease;
+}
+
+.card:hover {
+  border-color: rgba(247, 147, 26, 0.4);
+  background: var(--surface-2);
+}
+
+.card__label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+}
+
+.card__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.85rem;
+}
+
+.card__desc {
+  font-size: 0.925rem;
+  color: var(--muted-2);
+  line-height: 1.75;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding-block: 5rem;
+}
+
+.footer__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.footer__statement {
+  font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #fff;
+  margin-bottom: 2rem;
+}
+
+.footer__bottom {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.footer__logo {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.footer__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+}
+
+.footer__link {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent);
+  transition: opacity 200ms;
+}
+
+.footer__link:hover { opacity: 0.75; }
+
+.footer__license {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
